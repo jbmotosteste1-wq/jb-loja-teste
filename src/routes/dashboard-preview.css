@@ -7,7 +7,7 @@
   --jb-surface: #ffffff;
   --jb-soft: #f6f7fa;
   --jb-accent-soft: #fff1f3;
-  background: radial-gradient(ellipse at 100% 0%, #fae9ee 0, transparent 40rem), #f3f5f8;
+  background: #e9eef5;
   color: var(--jb-ink);
   font-family: 'Manrope', sans-serif;
   font-size: 14px;
