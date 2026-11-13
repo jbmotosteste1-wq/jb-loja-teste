@@ -320,7 +320,7 @@
 /* Finition do painel, preservando os estados e a navegação existentes. */
 .jb-dashboard-preview .jb-main { padding-top: 28px; }
 .jb-dashboard-preview .jb-heading { margin: 36px 0 30px; }
-.jb-dashboard-preview h1 { font-size: clamp(36px, 3.5vw, 52px); letter-spacing: -.055em; }
+.jb-dashboard-preview h1 { font-size: clamp(44px, 4.5vw, 64px); letter-spacing: -.055em; }
 .jb-dashboard-preview .jb-heading .jb-muted { font-size: 14px; }
 .jb-dashboard-preview .jb-review-strip { background: #ffffffc7; border-color: var(--jb-line); border-radius: 16px; font-size: 12px; }
 .jb-dashboard-preview .jb-sidebar, .jb-dashboard-preview .jb-mobile-drawer { background: radial-gradient(ellipse at top left, #34232f, transparent 55%), #181d29; }
