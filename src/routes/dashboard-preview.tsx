@@ -56,10 +56,10 @@ const actions: { label: string; icon: IconName; detail: string }[] = [
   { label: 'Compartilhar catálogo', icon: 'link', detail: 'Compartilhamento do catálogo público com clientes.' },
 ];
 const metrics: { label: string; value: string; change: string; icon: IconName; foot: string }[] = [
-  { label: 'Motos no estoque', value: '42', change: '+12%', icon: 'bike', foot: 'Inventário disponível' },
-  { label: 'Visualizações', value: '5.268', change: '+28%', icon: 'eye', foot: 'Alcance do catálogo' },
+  { label: 'Motos no estoque', value: '42', change: '+12%', icon: 'bike', foot: '35 disponíveis · 7 reservadas' },
+  { label: 'Faturamento no mês', value: 'R$ 384 mil', change: '+23%', icon: 'chart', foot: 'Vendas concluídas · Junho/2026' },
   { label: 'Leads e contatos', value: '187', change: '+35%', icon: 'users', foot: 'Oportunidades geradas' },
-  { label: 'Vendas no mês', value: '16', change: '+23%', icon: 'check', foot: 'Negócios concluídos' },
+  { label: 'Vendas no mês', value: '16', change: '+23%', icon: 'check', foot: 'Negócios concluídos · Junho/2026' },
 ];
 const categories = [
   { label: 'Trail / Aventura', value: 36, color: '#d71920' },
@@ -67,6 +67,54 @@ const categories = [
   { label: 'Scooter / Elétrica', value: 19, color: '#888e99' },
   { label: 'Outras', value: 12, color: '#d9dce2' },
 ];
+
+const currency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
+const illustrativeSales = [
+  { month: 'Jan', units: 8, revenue: 192000 },
+  { month: 'Fev', units: 9, revenue: 216000 },
+  { month: 'Mar', units: 10, revenue: 240000 },
+  { month: 'Abr', units: 12, revenue: 288000 },
+  { month: 'Mai', units: 13, revenue: 312000 },
+  { month: 'Jun', units: 16, revenue: 384000 },
+];
+const illustrativeStock = [
+  { model: 'Honda XRE 300', category: 'Trail / Aventura', year: 2023, price: 28900, quantity: 15, reserved: 3 },
+  { model: 'Honda CG 160', category: 'Street / Urbana', year: 2025, price: 18900, quantity: 14, reserved: 3 },
+  { model: 'Yamaha NMAX 160', category: 'Scooter / Elétrica', year: 2025, price: 22900, quantity: 8, reserved: 1 },
+  { model: 'Kawasaki Ninja 400', category: 'Outras', year: 2024, price: 34900, quantity: 3, reserved: 0 },
+  { model: 'Royal Enfield Meteor 350', category: 'Outras', year: 2025, price: 24900, quantity: 2, reserved: 0 },
+];
+
+function BusinessOverview() {
+  const [stockQuery, setStockQuery] = useState('');
+  const [category, setCategory] = useState('Todas');
+  const [salesView, setSalesView] = useState<'revenue' | 'units'>('revenue');
+  const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR');
+  const filteredStock = illustrativeStock.filter(item => (category === 'Todas' || item.category === category) && normalize(item.model).includes(normalize(stockQuery.trim())));
+  const currentMonth = illustrativeSales[illustrativeSales.length - 1];
+  const target = 480000;
+  const progress = Math.round(currentMonth.revenue / target * 100);
+  const stockValue = illustrativeStock.reduce((total, item) => total + item.price * item.quantity, 0);
+  const chartMaximum = Math.max(...illustrativeSales.map(item => item[salesView]));
+  return <div className="mb-6 space-y-4 text-foreground">
+    <section id="jb-sales-overview" tabIndex={-1} className="jb-panel scroll-mt-6" aria-labelledby="jb-sales-title">
+      <div className="jb-panel-heading flex flex-wrap gap-3"><div><p className="jb-kicker">RESULTADOS DO NEGÓCIO</p><h2 id="jb-sales-title">Resumo de vendas</h2></div><span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-800">Junho de 2026 · Ilustrativo</span></div>
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4"><p className="text-xs text-slate-600">Ticket médio por moto</p><strong className="mt-2 block text-2xl font-bold tracking-tight">{currency(currentMonth.revenue / currentMonth.units)}</strong><span className="text-xs text-slate-500">Faturamento dividido por 16 vendas</span></div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4"><p className="text-xs text-slate-600">Valor do estoque a preço de venda</p><strong className="mt-2 block text-2xl font-bold tracking-tight">{currency(stockValue)}</strong><span className="text-xs text-slate-500">42 motos, incluindo as reservadas</span></div>
+        <div className="rounded-lg border border-red-100 bg-red-50 p-4"><div className="flex items-center justify-between gap-2 text-xs text-red-900"><span>Meta de faturamento</span><strong>{progress}%</strong></div><strong className="mt-2 block text-2xl font-bold tracking-tight">{currency(target)}</strong><div className="my-2 h-2 overflow-hidden rounded-full bg-red-100" role="progressbar" aria-label="Meta mensal de faturamento" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}><div className="h-full rounded-full bg-red-700" style={{ width: `${progress}%` }} /></div><span className="text-xs text-red-900">Faltam {currency(target - currentMonth.revenue)} para a meta</span></div>
+      </div>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-sm font-bold">Evolução das vendas</h3><p className="jb-muted">Janeiro a junho de 2026 · Valores demonstrativos</p></div><div className="jb-segment" role="group" aria-label="Indicador do gráfico de vendas"><button type="button" aria-pressed={salesView === 'revenue'} onClick={() => setSalesView('revenue')}>Faturamento</button><button type="button" aria-pressed={salesView === 'units'} onClick={() => setSalesView('units')}>Motos vendidas</button></div></div>
+      <div className="mt-4 overflow-x-auto"><div className="grid min-w-[360px] grid-cols-6 gap-3" role="list" aria-label={salesView === 'revenue' ? 'Faturamento mensal em reais' : 'Quantidade de motos vendidas por mês'}>{illustrativeSales.map(item => <div key={item.month} role="listitem" className="text-center"><span className="block text-xs font-bold text-slate-700">{salesView === 'revenue' ? currency(item.revenue) : `${item.units} motos`}</span><div className="mt-2 flex h-32 items-end justify-center border-b border-slate-200 bg-slate-50" aria-hidden="true"><div className={`w-3/5 rounded-t-md ${item.month === 'Jun' ? 'bg-red-700' : 'bg-slate-700'}`} style={{ height: `${item[salesView] / chartMaximum * 100}%` }} /></div><span className="mt-2 block text-xs text-slate-600">{item.month}</span></div>)}</div></div>
+    </section>
+    <section id="jb-stock-overview" tabIndex={-1} className="jb-panel scroll-mt-6" aria-labelledby="jb-stock-title">
+      <div className="jb-panel-heading flex flex-wrap gap-3"><div><p className="jb-kicker">INVENTÁRIO DA LOJA</p><h2 id="jb-stock-title">Estoque de motos</h2></div><span className="text-xs font-semibold text-slate-600">35 disponíveis / 7 reservadas</span></div>
+      <div className="my-5 flex flex-wrap items-end gap-3"><label className="flex min-w-0 flex-1 flex-col gap-2 text-xs font-semibold text-slate-600">Buscar modelo<input type="search" className="min-h-11 w-full rounded-md border border-slate-300 bg-background px-3 text-sm text-foreground" placeholder="Ex.: Honda, NMAX..." value={stockQuery} onChange={event => setStockQuery(event.target.value)} /></label><label className="flex w-full flex-col gap-2 text-xs font-semibold text-slate-600 sm:w-auto">Categoria<select className="min-h-11 rounded-md border border-slate-300 bg-background px-3 text-sm text-foreground" value={category} onChange={event => setCategory(event.target.value)}><option value="Todas">Todas as categorias</option>{categories.map(item => <option key={item.label} value={item.label}>{item.label}</option>)}</select></label></div>
+      <div className="overflow-x-auto rounded-lg border border-slate-200"><table className="w-full min-w-[720px] border-collapse text-left text-sm"><caption className="sr-only">Estoque ilustrativo agrupado por modelo. Preços por unidade; o total inclui as reservas.</caption><thead className="bg-slate-50 text-xs text-slate-600"><tr>{['Modelo / categoria', 'Ano', 'Preço unitário', 'Total', 'Disponíveis', 'Reservadas'].map(label => <th key={label} scope="col" className="whitespace-nowrap px-4 py-3 font-semibold">{label}</th>)}</tr></thead><tbody>{filteredStock.map(item => <tr key={item.model} className="border-t border-slate-200 hover:bg-slate-50"><th scope="row" className="px-4 py-4 font-semibold"><span className="block">{item.model}</span><span className="block text-xs font-normal text-slate-500">{item.category}</span></th><td className="px-4 py-4 text-slate-600">{item.year}</td><td className="whitespace-nowrap px-4 py-4 font-semibold">{currency(item.price)}</td><td className="px-4 py-4 tabular-nums">{item.quantity}</td><td className="px-4 py-4"><span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">{item.quantity - item.reserved}</span></td><td className="px-4 py-4 tabular-nums text-slate-600">{item.reserved}</td></tr>)}</tbody></table>{filteredStock.length === 0 && <div className="flex flex-col items-center justify-center gap-3 p-8 text-center" role="status"><p className="text-sm text-slate-600">Nenhuma moto encontrada com estes filtros.</p><button type="button" className="jb-button jb-button-secondary" onClick={() => { setStockQuery(''); setCategory('Todas'); }}>Limpar filtros</button></div>}</div>
+      <p className="mt-3 text-xs text-slate-500" role="status">{filteredStock.length} modelos · {filteredStock.reduce((total, item) => total + item.quantity, 0)} motos na seleção. Estoque e preços fictícios.</p>
+    </section>
+  </div>;
+}
 
 function DashboardPreview() {
   const [drawer, setDrawer] = useState(false);
@@ -86,6 +134,14 @@ function DashboardPreview() {
   }, [drawer]);
   const showModule = (title: string, detail?: string) => {
     setDrawer(false);
+    const sectionId = title === 'Estoque de motos' ? 'jb-stock-overview' : title === 'Relatórios' ? 'jb-sales-overview' : null;
+    if (sectionId) {
+      if (drawerDialog.current?.open) drawerDialog.current.close();
+      const section = document.getElementById(sectionId);
+      section?.scrollIntoView({ block: 'start' });
+      section?.focus({ preventScroll: true });
+      return;
+    }
     setModal({ title, detail });
   };
   const matchingModules = navigation.filter(item => item.label.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR')));
@@ -113,7 +169,8 @@ function DashboardPreview() {
         <section className="jb-metrics grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-4" aria-label="Indicadores demonstrativos">
           {metrics.map((metric, index) => <article key={metric.label} className="jb-metric"><div className="flex items-center justify-between"><span className="jb-metric-label">{metric.label}</span><Icon name={metric.icon} /></div><div className="jb-metric-reading"><strong>{metric.value}</strong><span className="jb-positive">↗ {metric.change}</span></div><div className="jb-metric-footer"><span>{metric.foot}</span><span>0{index + 1}</span></div></article>)}
         </section>
-        <p className="jb-data-note">Variações ilustrativas em relação ao período anterior.</p>
+        <p className="jb-data-note">Variações ilustrativas em relação ao período anterior. Resumo comercial de junho de 2026.</p>
+        <BusinessOverview />
         <div className="jb-feature-grid grid gap-4">
           <section className="jb-feature" aria-labelledby="jb-feature-title"><div className="jb-feature-top"><span className="jb-light-label"><i /> DESTAQUE DO ESTOQUE</span><span>01 / 03</span></div><div className="jb-feature-copy"><p>HONDA · ADVENTURE</p><h2 id="jb-feature-title">XRE 300<span>2026</span></h2><p className="jb-feature-description">Presença que impõe respeito.<br />Liberdade para ir além.</p><button type="button" className="jb-button jb-button-light" onClick={() => showModule('Editar destaque', 'Prévia da posição editorial do destaque de estoque. A fotografia do veículo será mantida na integração com o painel existente.')}><Icon name="image" /> Editar destaque <Icon name="arrow" /></button></div><div className="jb-instrument" aria-hidden="true"><div className="jb-instrument-ring" /><div className="jb-instrument-core"><span>ADVENTURE</span><strong>300</strong><small>JB / SELECT</small></div></div><div className="jb-feature-footer"><span>CURADORIA JB MOTOS</span><span>COMPOSIÇÃO EDITORIAL / PRÉVIA</span></div></section>
           <section className="jb-panel jb-quick" aria-labelledby="jb-quick-title"><div className="jb-panel-heading"><h2 id="jb-quick-title"><Icon name="bolt" /> Ações rápidas</h2><span className="jb-section-index">02</span></div><p className="jb-muted jb-panel-subtitle">Menos etapas. Mais resultado.</p><div className="jb-actions grid grid-cols-2 gap-2 sm:grid-cols-3">{actions.map(action => <button type="button" key={action.label} onClick={() => showModule(action.label, action.detail)}><Icon name={action.icon} /><span>{action.label}</span></button>)}</div></section>
